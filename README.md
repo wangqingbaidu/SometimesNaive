@@ -1,2 +1,0 @@
-# SometimesNaive
-sundry projects
