@@ -146,9 +146,25 @@ private:
 		for (int i = s; i < e; i++)
 			energy_sorted.push_back(energy.at(i));
 		sort(energy_sorted.begin(), energy_sorted.end());
+		//Get mean
+		double sum = 0;
+		for(vector<double>::iterator it = energy_sorted.begin(); it != energy_sorted.end(); it++)
+			sum += *it;
+		//cout << sum << endl;
+		double mean =  sum / energy_sorted.size(); //mean
+		if (mean != 0)
+		{
+			//Get std
+			double accum  = 0.0;
+			for(vector<double>::iterator it = energy_sorted.begin(); it != energy_sorted.end(); it++)
+				accum += (*it - mean) * (*it - mean);
+			double std = sqrt(accum/energy_sorted.size()); //方差
+
+			percentage *= max(0.0, log(std / mean * 10 + 1.0e-8) + 1);
+		}
+		cout << percentage << endl;
 		int idx = int(energy_sorted.size() * percentage);
 		double threshold = energy_sorted.at(idx);
-
 		int i, start_idx = -1;;
 		bool change = false;
 		vector<audio_segments> split, res;
