@@ -64,12 +64,20 @@ public:
 //		args_map["data"] = input_data;
 //		//Generate ct executor
 //		Symbol input = Symbol::Variable("data");
+//		cout <<"data----->";
+//		for (int i = 0; i < H; i++)
+//			cout << data[i] << " ";
+//		cout << endl;
 
 		matrix_mul(data, args_map["wf"], args_map["temp1_H"], 1, D, H);
 		matrix_mul(args_map["ht"], args_map["uf"], args_map["temp2_H"], 1, H, H);
 		matrix_add(args_map["temp1_H"], args_map["temp2_H"], args_map["a_ft"], H);
 		matrix_add(args_map["a_ft"], args_map["bf"], args_map["a_ft"], H);
 		matrix_sigmoid(args_map["a_ft"], args_map["a_ft"], H);
+//		cout <<"a_ft----->";
+//		for (int i = 0; i < H; i++)
+//			cout << args_map["a_ft"][i] << " ";
+//		cout << endl;
 
 //		Symbol ft =  dot(input, wf) + dot(ht, uf) + bf;
 //		Symbol a_ft = Activation(ft, ActivationActType::sigmoid);
@@ -79,6 +87,10 @@ public:
 		matrix_add(args_map["temp1_H"], args_map["temp2_H"], args_map["a_it"], H);
 		matrix_add(args_map["a_it"], args_map["bi"], args_map["a_it"], H);
 		matrix_sigmoid(args_map["a_it"], args_map["a_it"], H);
+//		cout <<"a_it----->";
+//		for (int i = 0; i < H; i++)
+//			cout << args_map["a_it"][i] << " ";
+//		cout << endl;
 
 //		Symbol it =  dot(input, wi) + dot(ht, ui) + bi;
 //		Symbol a_it = Activation(it, ActivationActType::sigmoid);
@@ -91,6 +103,10 @@ public:
 		matrix_mul_elementwise(args_map["a_ft"], args_map["ct"], args_map["temp1_H"], H);
 		matrix_mul_elementwise(args_map["a_it"], args_map["a_tmp"], args_map["temp2_H"], H);
 		matrix_add(args_map["temp1_H"], args_map["temp2_H"], args_map["ct"], H);
+//		cout <<"ct----->";
+//		for (int i = 0; i < H; i++)
+//			cout << args_map["ct"][i] << " ";
+//		cout << endl;
 
 //		Symbol tmp = dot(input, wc) + dot(ht, uc) + bc;
 //		Symbol a_tmp = Activation(tmp, ActivationActType::tanh);
@@ -108,6 +124,10 @@ public:
 		matrix_add(args_map["temp1_H"], args_map["temp2_H"], args_map["a_ot"], H);
 		matrix_add(args_map["a_ot"], args_map["bo"], args_map["a_ot"], H);
 		matrix_sigmoid(args_map["a_ot"], args_map["a_ot"], H);
+//		cout <<"ht----->";
+//		for (int i = 0; i < H; i++)
+//			cout << args_map["ht"][i] << " ";
+//		cout << endl;
 
 //		Symbol ot = dot(input, wo) + dot(ht, uo) + bo;
 //		Symbol a_ot = Activation(ot, ActivationActType::sigmoid);
@@ -117,6 +137,10 @@ public:
 
 		matrix_tanh(args_map["ct"], args_map["a_ct"], H);
 		matrix_mul_elementwise(args_map["a_ct"], args_map["a_ot"], args_map["ht"], H);
+//		cout <<"ht----->";
+//		for (int i = 0; i < H; i++)
+//			cout << args_map["ht"][i] << " ";
+//		cout << endl;
 //		Symbol a_ct = Activation(ct, ActivationActType::tanh);
 //		Executor* act_exe = a_ct.SimpleBind(ctx, args_map);
 //		act_exe->Forward(false);
@@ -126,7 +150,7 @@ public:
 
 		//Generate output executor
 		matrix_mul(args_map["fc_w"], args_map["ht"], args_map["temp1_H"], V, H, 1);
-		matrix_add(args_map["temp1_H"], args_map["fc_b"], args_map["temp1_H"], H);
+		matrix_add(args_map["temp1_H"], args_map["fc_b"], args_map["temp1_H"], V);
 
 //		Symbol rht = Symbol::Variable("rht");
 //		Symbol fc = dot(fc_w, rht) +fc_b;
@@ -273,7 +297,12 @@ private:
 	void matrix_tanh(float* a, float* b, int n)
 	{
 		for (int i= 0; i < n; i++)
-			*(b+i) = (exp(*(a+i)) - exp(-(*(a+i)))) / (exp(*(a+i)) + exp(-(*(a+i))));
+			if (*(a+i) > 17)
+				*(b+i) = 1;
+			else if(*(a+i) < -17)
+				*(b+i) = -1;
+			else
+				*(b+i) = (exp(*(a+i)) - exp(-(*(a+i)))) / (exp(*(a+i)) + exp(-(*(a+i))));
 	}
 };
 
