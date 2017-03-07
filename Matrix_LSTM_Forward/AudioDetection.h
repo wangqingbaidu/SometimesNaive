@@ -3,6 +3,7 @@
  *
  *  Created on: 2017年1月3日
  *      Author: zhangzhiwei
+ *	      From: Kwai
  */
 
 #ifndef AUDIODETECTION_H_
