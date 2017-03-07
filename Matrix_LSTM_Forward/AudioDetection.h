@@ -22,19 +22,17 @@ public:
 		this->D = D;
 		this->H = H;
 		this->V = V;
+		init_state();
 	}
 	virtual ~AudioDetection(){}
 
-	void getDetection(vector<vector<float>>& res, vector<short>& wav, vector<vector<float>>& feature)
+	void getDetection(vector<vector<float>>& res, vector<short>& wav, vector<vector<float>>& feature, bool end_of_segments)
 	{
 		int min_segment = ceil(min_duration / segment_duration);
 		int min_split = ceil(start_duration / segment_duration);
 		int energy_npoints = fs * enegy_duration / 2;
 		int npoints = fs * segment_duration;
-		vector<bool> labels;
 
-		//Reset LSTM state
-		lstm.reset_state();
 		//Get label
 		for(vector<vector<float>>::iterator it = feature.begin(); it != feature.end(); it++)
 		{
@@ -50,17 +48,25 @@ public:
 				labels.push_back(true);
 		}
 
-		//Post process
-		vector<audio_segments> seg;
-		seg = pure_boundaries(labels, wav.data(), wav.size(), min_segment, min_split, energy_npoints, npoints);
-
-		for (int i = 0; i < seg.size(); i++)
-		{
-	//		cout << seg.at(i).start << ' ' << seg.at(i).end << endl;
-			vector<float> s;
-			s.push_back(seg.at(i).start * segment_duration);
-			s.push_back(seg.at(i).end * segment_duration);
-			res.push_back(s);
+		calc_energy(energy_log, wav.data(), wav.size(), energy_npoints, energy_npoints * 2, true);
+		calc_energy(energy, wav.data(), wav.size(), npoints, npoints, false);
+		
+		if (end_of_segments)
+		{	
+			//Post process
+			vector<audio_segments> seg;
+			seg = pure_boundaries(labels, min_segment, min_split, energy_npoints, npoints);
+	
+			for (int i = 0; i < seg.size(); i++)
+			{
+				//cout << seg.at(i).start << ' ' << seg.at(i).end << endl;
+				vector<float> s;
+				s.push_back(seg.at(i).start * segment_duration);
+				s.push_back(seg.at(i).end * segment_duration);
+				res.push_back(s);
+			}
+			//Reset LSTM state and Class state
+			init_state();
 		}
 	}
 private:
@@ -71,6 +77,17 @@ private:
 	float segment_duration = 0.02;
 	float start_duration = 1;
 	float enegy_duration = 0.05;
+	vector<bool> labels;
+	vector<double> energy_log;
+	vector<double> energy;
+
+	void init_state()
+	{
+		lstm.reset_state();
+		labels.clear();
+		energy.clear();
+		energy_log.clear();
+	}
 
 	void label_to_boundary(vector<audio_segments> &res, vector<bool> &labels, int min_segment)
 	{
@@ -250,9 +267,16 @@ private:
 	//min_split: split segment which contains more than min_split points
 	//energy_npoints: for energy_log
 	//npoints: points of energy, per fragment.
-	vector<audio_segments> pure_boundaries(vector<bool> &labels, short* wav, int wav_length,
+	vector<audio_segments> pure_boundaries(vector<bool> &labels,
 			int min_segment, int min_split, int energy_npoints, int npoints)
 	{
+		//Post process
+		vector<audio_segments> new_boundaries;
+		// calc_energy(energy_log, wav, wav_length, energy_npoints, energy_npoints * 2, true);
+		// calc_energy(energy, wav, wav_length, npoints, npoints, false);
+		vector<double> smooth_energy_log = smooth_moving_average(energy_log);
+		vector<double> smooth_energy = smooth_moving_average(energy);
+		
 		//Get boundaries
 		vector<audio_segments> segments;
 		label_to_boundary(segments, labels, min_segment);
@@ -260,16 +284,6 @@ private:
 	//	for (int i = 0; i < segments.size(); i++)
 	//		cout << segments.at(i).start << ' ' << segments.at(i).end << endl;
 	//	cout << endl;
-
-		//Post process
-		vector<audio_segments> new_boundaries;
-		vector<double> energy_log;
-		vector<double> energy;
-		calc_energy(energy_log, wav, wav_length, energy_npoints, energy_npoints * 2, true);
-		calc_energy(energy, wav, wav_length, npoints, npoints, false);
-		vector<double> smooth_energy_log = smooth_moving_average(energy_log);
-		vector<double> smooth_energy = smooth_moving_average(energy);
-
 		for (int i = 0; i < segments.size(); i++)
 		{
 			if ((segments.at(i).end - segments.at(i).start) <= min_split)
