@@ -368,7 +368,7 @@ int main()
 	cout << "-------------Test class---------------------" << endl;
 	AudioDetection audio(D, H, V, "parameters.bin");
 	result.clear();
-	audio.getDetection(result, wav_test, feature_test);
+	audio.getDetection(result, wav_test, feature_test, true);
 	for (int i = 0; i < result.size(); i++)
 		cout << result.at(i).at(0) << ' ' << result.at(i).at(1) << endl;
 
