@@ -124,7 +124,7 @@ private:
 			bool log_domain, float smoothing = 1.0)
 	{
 		int start_idx = 0;
-		while ((start_idx + npoints) < wav_length)
+		while ((start_idx + npoints) <= wav_length)
 		{
 			double mean = 0;
 			for (int i = 0; i < npoints; i++){
