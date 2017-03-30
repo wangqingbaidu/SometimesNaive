@@ -304,9 +304,9 @@ private:
 					int start_idx = it->start * energy_npoints / npoints;
 					int end_idx = it->end * energy_npoints / npoints;
 					double threshold = get_energy_threshold(smooth_energy, start_idx, end_idx);
-					while(smooth_energy.at(start_idx) < threshold)
+					while(start_idx < smooth_energy.size() && smooth_energy.at(start_idx) < threshold)
 						start_idx++;
-					while(smooth_energy.at(end_idx) < threshold)
+					while(end_idx >= 0 && smooth_energy.at(end_idx) < threshold)
 						end_idx--;
 					new_boundaries.push_back(audio_segments{start_idx, end_idx + 1});
 				}
