@@ -1,6 +1,6 @@
 # AutoMultiGPU For Tensorflow
 ### 1. Usage
-```shell
+```sh
 python MultiGPUTrainer.py -h
 
 optional arguments:
@@ -37,7 +37,7 @@ optional arguments:
 
 使用一下几个参数，其它参数参见-h列表。
 
-```python
+```sh
 -graph_def_path ./model/AudioRNN.py 
 -graph_name AudioRNNModel 
 -dp_def_path ./model/AudioDataProvider.py 
