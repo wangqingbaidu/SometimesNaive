@@ -1,6 +1,6 @@
 # AutoMultiGPU For Tensorflow
 ### 1. Usage
-```python
+```shell
 python MultiGPUTrainer.py -h
 
 optional arguments:
