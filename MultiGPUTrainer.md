@@ -63,3 +63,28 @@ dataprovider必须包括的属性。`batch_size`, `get_batch_data`
 ---- | ---
 batch_size| 不解释了。
 get\_batch\_data| 获取下一个batch的方法，返回与`idx_mapping`参数相对应的数据个数。
+
+### 3. One More Thing.
+为了增加灵活性，可以自行修改计算图以及DataProvider的参数。
+
+#### 修改计算图的相关参数，在第101行。
+
+```python
+for idx, d in enumerate(devices):
+    with tf.device(d):
+        with tf.name_scope('tower_%d' %idx):
+            print ('\tBuilding forward computing graph for device %s...' %d)    
+            model = graph(batch_size=batch_size, reuse=reuse, is_multi_gpu=True, is_training=True)
+            tf.add_to_collection('train_model', model)
+            grads.append(model.grads)
+            tf.add_to_collection('losses', model.loss)
+            reuse=True
+```
+`model = graph(batch_size=batch_size, reuse=reuse, is_multi_gpu=True, is_training=True)`
+
+#### 修改DataProvider的相关参数，在第166行。
+
+```python
+dp = cu.load_dp_config(args.dp_def_path, args.dp_name)(data_pattern='/home/zhangzhiwei/audio_data',
+                                                       batch_size=args.batch_size)                                             
+```
